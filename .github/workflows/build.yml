@@ -7,19 +7,14 @@ on:
 env:
   IMAGE_NAME: oc-build
 jobs:
-  get-image-version:
-    runs-on: ubuntu-22.04
-    steps:
-      - name: checkout
-        uses: actions/checkout@v2
-      - name: Generate Image Version
-        run: echo IMAGE_VERSION=`git describe --tags --always` >> $GITHUB_ENV
   push-ghcr:
     runs-on: ubuntu-22.04
     env:
       REGISTRY: ghcr.io
     steps:
       - uses: actions/checkout@v2
+      - name: Generate Image Version
+        run: echo IMAGE_VERSION=`git describe --tags --always` >> $GITHUB_ENV
       - name: Login
         uses: docker/login-action@v1
         with:
