@@ -7,20 +7,13 @@ on:
 env:
   IMAGE_NAME: oc-build
 jobs:
-  get-tags:
+  get-image-version:
     runs-on: ubuntu-22.04
-    outputs:
-      tags: ${{ steps.set-output-id.outputs.tags }}
     steps:
-      - uses: actions/checkout@v2
-      - name: set-output
-        id: set-output-id
-        run: |
-          VERSION=edge
-          if [[ $GITHUB_REF == refs/tags/* ]]; then
-            VERSION=${GITHUB_REF#refs/tags/v}
-          fi
-          echo ::set-output name=tags::${VERSION}          
+      - name: checkout
+        uses: actions/checkout@v2
+      - name: Generate Image Version
+        run: echo IMAGE_VERSION=`git describe --tags --always` >> $GITHUB_ENV
   push-ghcr:
     runs-on: ubuntu-22.04
     env:
@@ -40,5 +33,5 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: |-
-            ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ needs.get-tags.outputs.tags }}
+            ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_VERSION }}
             ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:latest
