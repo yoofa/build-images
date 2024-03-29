@@ -50,7 +50,7 @@ sed -i 's/packages.append("snapcraft")/print("skipping snapcraft")/g' /setup/ins
 chmod +x /setup/install-build-deps.sh
 chmod +x /setup/install-build-deps.py
 
-bash /setup/install-build-deps.sh --syms --no-prompt --no-chromeos-fonts --no-nacl
+DEBIAN_FRONTEND=noninteractive bash /setup/install-build-deps.sh --syms --no-prompt --no-chromeos-fonts --no-nacl
 
 rm -rf /var/lib/apt/lists/*
 
