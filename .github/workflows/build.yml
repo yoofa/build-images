@@ -5,7 +5,7 @@ on:
   push:
     branches: [master]
 env:
-  IMAGE_NAME: oc-build
+  IMAGE_NAME: ave-build
 jobs:
   push-ghcr:
     runs-on: ubuntu-22.04
