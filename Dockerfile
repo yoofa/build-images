@@ -1,5 +1,7 @@
 FROM ubuntu:22.04
 
+USER root
+
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Set up TEMP directory
