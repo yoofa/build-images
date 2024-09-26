@@ -30,6 +30,11 @@ DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends $packa
 
 update-alternatives --install /usr/bin/python python /usr/bin/python3 30
 
+# keep DEBIAN_FRONTEND=noninteractive in sudo command,
+# because google install scripts below may use sudo apt install with interactive action.
+echo 'Defaults    env_keep += "DEBIAN_FRONTEND"' >>/etc/sudoers.d/env_keep
+
+
 #add-apt-repository ppa:git-core/ppa -y && apt-get update
 
 mkdir /setup
