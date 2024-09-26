@@ -33,10 +33,10 @@ update-alternatives --install /usr/bin/python python /usr/bin/python3 30
 #add-apt-repository ppa:git-core/ppa -y && apt-get update
 
 # No Sudo Prompt
-echo 'builduser ALL=NOPASSWD: ALL' >>/etc/sudoers.d/50-builduser
-echo 'Defaults    env_keep += "DEBIAN_FRONTEND"' >>/etc/sudoers.d/env_keep
+#echo 'builduser ALL=NOPASSWD: ALL' >>/etc/sudoers.d/50-builduser
+#echo 'Defaults    env_keep += "DEBIAN_FRONTEND"' >>/etc/sudoers.d/env_keep
 
-su builduser
+#su builduser
 
 mkdir /setup
 # Download deps installation files from Chromium
@@ -54,7 +54,7 @@ DEBIAN_FRONTEND=noninteractive bash /setup/install-build-deps.sh --syms --no-pro
 
 rm -rf /var/lib/apt/lists/*
 
-chown builduser:builduser /setup
+#chown builduser:builduser /setup
 
 #mkdir /tmp/workspace
 #chown builduser:builduser /tmp/workspace

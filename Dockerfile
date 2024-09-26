@@ -11,7 +11,7 @@ RUN chmod a+rwx /tmp
 ADD tools/install-deps.sh /tmp/
 RUN bash /tmp/install-deps.sh
 
-USER builduser
+#USER builduser
 
 ADD  tools/install-depot_tools.sh /tmp/
 RUN bash /tmp/install-depot_tools.sh
@@ -20,4 +20,4 @@ ENV PATH=/setup/depot_tools:$PATH
 
 RUN rm -rf /var/lib/apt/lists/*
 
-WORKDIR /home/builduser
+#WORKDIR /home/builduser

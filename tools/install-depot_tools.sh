@@ -10,4 +10,4 @@
 # https://www.chromium.org/developers/how-tos/install-depot-tools
 git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git /setup/depot_tools
 #export PATH="/setup/depot_tools:$PATH"
-echo "export PATH=\"/setup/depot_tools:$PATH\"" >>/home/builduser/.bashrc
+#echo "export PATH=\"/setup/depot_tools:$PATH\"" >>/home/builduser/.bashrc
