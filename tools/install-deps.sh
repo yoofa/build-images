@@ -11,6 +11,7 @@ set -e
 apt-get update
 
 package_list="
+    git \
     curl \
     file \
     locales \
