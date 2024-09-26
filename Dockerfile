@@ -16,6 +16,8 @@ USER builduser
 ADD  tools/install-depot_tools.sh /tmp/
 RUN bash /tmp/install-depot_tools.sh
 
+PATH=/setup/depot_tools:$PATH
+
 RUN rm -rf /var/lib/apt/lists/*
 
 WORKDIR /home/builduser
