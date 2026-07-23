@@ -1,0 +1,26 @@
+name: 'Format Check Action'
+description: 'Runs git cl format dry-run check on the repository'
+
+inputs:
+  upstream:
+    description: 'Upstream branch to check against'
+    required: false
+    default: 'master'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Configure Git Safe Directory
+      shell: bash
+      run: git config --global --add safe.directory '*'
+
+    - name: Run Format Check
+      shell: bash
+      run: |
+        diff_output=$(git cl format --dry-run --diff --upstream="${{ inputs.upstream }}")
+        if [ -n "$diff_output" ]; then
+          echo "::error::Code format check failed! The following format diff is required:"
+          echo "$diff_output"
+          exit 1
+        fi
+        echo "Code format check passed!"
