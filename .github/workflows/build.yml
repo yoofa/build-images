@@ -9,20 +9,24 @@ env:
 jobs:
   push-ghcr:
     runs-on: ubuntu-22.04
+    # 1. 显式授予 GitHub Actions 读写 Package 的权限
+    permissions:
+      contents: read
+      packages: write
     env:
       REGISTRY: ghcr.io
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Generate Image Version
         run: echo IMAGE_VERSION=`git describe --tags --always` >> $GITHUB_ENV
       - name: Login
-        uses: docker/login-action@v1
+        uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.PACKAGES_TOKEN }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
       - name: Build && Push
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v5
         with:
           context: .
           file: ./Dockerfile
