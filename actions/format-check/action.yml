@@ -1,11 +1,11 @@
 name: 'Format Check Action'
-description: 'Runs git cl format dry-run check on the repository'
+description: 'Runs git cl format dry-run check on the repository for PRs and Pushes on any branch'
 
 inputs:
-  upstream:
-    description: 'Upstream branch to check against'
+  base_ref:
+    description: 'Target base branch for PR (e.g. github.base_ref). Leave empty for push events.'
     required: false
-    default: 'master'
+    default: ''
 
 runs:
   using: 'composite'
@@ -17,16 +17,18 @@ runs:
     - name: Run Format Check
       shell: bash
       run: |
-        UPSTREAM="${{ inputs.upstream }}"
-        CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")
-        
-        # 如果 upstream 和当前分支同名（例如都在 master），或者在 push 事件下，退回到 origin/master 或 HEAD~1
-        if [ "$UPSTREAM" = "$CURRENT_BRANCH" ] || [ -z "$UPSTREAM" ]; then
-          if git rev-parse --verify origin/master >/dev/null 2>&1; then
-            UPSTREAM="origin/master"
-          else
-            UPSTREAM="HEAD~1"
-          fi
+        # 判断是否有本地未提交的修改 (Worktree 变动)
+        UNCOMMITTED_CHANGES=$(git diff --name-only HEAD 2>/dev/null || echo "")
+
+        if [ -n "$UNCOMMITTED_CHANGES" ]; then
+          # 本地有未提交的改动时（如 gh act 本地测试），直接和 HEAD 比对未提交部分
+          UPSTREAM="HEAD"
+        elif [ -n "${{ inputs.base_ref }}" ]; then
+          # PR 事件，和 PR 目标分支比对
+          UPSTREAM="origin/${{ inputs.base_ref }}"
+        else
+          # Push 事件，和上一个 commit 比对
+          UPSTREAM="HEAD~1"
         fi
 
         echo "Running git cl format against upstream: $UPSTREAM"
