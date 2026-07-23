@@ -29,13 +29,14 @@ runs:
         elif [ -n "${{ inputs.base_ref }}" ]; then
           # 2. PR 事件：与 PR 的目标分支 (如 origin/master, origin/main) 比对
           UPSTREAM="origin/${{ inputs.base_ref }}"
-        elif [ -n "${{ inputs.event_before }}" ] && [ "${{ inputs.event_before }}" != "0000000000000000000000000000000000000000" ]; then
-          # 3. Push 事件：对比本次 Push 的起点 SHA (完美覆盖一次 Push 1笔或多笔 patch)
+        # 3. Push 事件：如果传入了 event_before 且 SHA 合法且在本地 git 历史中存在
+        elif [ -n "${{ inputs.event_before }}" ] && [ "${{ inputs.event_before }}" != "0000000000000000000000000000000000000000" ] && git cat-file -e "${{ inputs.event_before }}" 2>/dev/null; then
           UPSTREAM="${{ inputs.event_before }}"
         else
-          # 4. 保底方案 (如刚创建新分支 Push)
+          # 4. 保底方案 (如 force push 导致旧 commit 不存在，或者刚创建新分支 Push)
           UPSTREAM="HEAD~1"
         fi
+
 
         echo "Running git cl format against upstream: $UPSTREAM"
         # 1. 直接执行格式化
