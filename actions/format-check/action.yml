@@ -38,19 +38,22 @@ runs:
         fi
 
         echo "Running git cl format against upstream: $UPSTREAM"
-        # 加上 || true 防止 git cl format 返回 exit code 2 导致脚本中途退出而没能打印出 diff
-        diff_output=$(git cl format --dry-run --diff --upstream="$UPSTREAM" 2>&1 || true)
-        if echo "$diff_output" | grep -q "^--- "; then
-          echo "::error::Code format check failed! The following format diff is required:"
-          echo "$diff_output"
+        # 1. 直接执行格式化
+        git cl format --upstream="$UPSTREAM"
+
+        # 2. 检查是否有文件被改动 (支持包含 GN、C++、Java 等所有语言的完美 Diff)
+        if ! git diff --quiet; then
+          echo "::error::Code format check failed! The following files need formatting:"
+          echo "--------------------------------------------------------"
+          git diff --name-only
+          echo "--------------------------------------------------------"
+          echo "Detailed Format Diff:"
+          git --no-pager diff
           exit 1
-        elif [ -n "$diff_output" ] && echo "$diff_output" | grep -v -q "WARNING:"; then
-          # 处理包含有 GN 风格修改或其他被修改提示的情况
-          if echo "$diff_output" | grep -q "This change has"; then
-            echo "::error::Code format check failed! The following format diff is required:"
-            echo "$diff_output"
-            exit 1
-          fi
         fi
+
         echo "Code format check passed!"
+
+
+
 
