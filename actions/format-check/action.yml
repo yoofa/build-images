@@ -6,6 +6,10 @@ inputs:
     description: 'Target base branch for PR (e.g. github.base_ref). Leave empty for push events.'
     required: false
     default: ''
+  event_before:
+    description: 'Commit SHA before push (e.g. github.event.before). Leave empty for PR events.'
+    required: false
+    default: ''
 
 runs:
   using: 'composite'
@@ -17,26 +21,36 @@ runs:
     - name: Run Format Check
       shell: bash
       run: |
-        # 判断是否有本地未提交的修改 (Worktree 变动)
+        # 1. 本地未提交的改动 (工作区变动，如 gh act 本地测试)
         UNCOMMITTED_CHANGES=$(git diff --name-only HEAD 2>/dev/null || echo "")
 
         if [ -n "$UNCOMMITTED_CHANGES" ]; then
-          # 本地有未提交的改动时（如 gh act 本地测试），直接和 HEAD 比对未提交部分
           UPSTREAM="HEAD"
         elif [ -n "${{ inputs.base_ref }}" ]; then
-          # PR 事件，和 PR 目标分支比对
+          # 2. PR 事件：与 PR 的目标分支 (如 origin/master, origin/main) 比对
           UPSTREAM="origin/${{ inputs.base_ref }}"
+        elif [ -n "${{ inputs.event_before }}" ] && [ "${{ inputs.event_before }}" != "0000000000000000000000000000000000000000" ]; then
+          # 3. Push 事件：对比本次 Push 的起点 SHA (完美覆盖一次 Push 1笔或多笔 patch)
+          UPSTREAM="${{ inputs.event_before }}"
         else
-          # Push 事件，和上一个 commit 比对
+          # 4. 保底方案 (如刚创建新分支 Push)
           UPSTREAM="HEAD~1"
         fi
 
         echo "Running git cl format against upstream: $UPSTREAM"
-        diff_output=$(git cl format --dry-run --diff --upstream="$UPSTREAM")
-        if [ -n "$diff_output" ]; then
+        # 加上 || true 防止 git cl format 返回 exit code 2 导致脚本中途退出而没能打印出 diff
+        diff_output=$(git cl format --dry-run --diff --upstream="$UPSTREAM" 2>&1 || true)
+        if echo "$diff_output" | grep -q "^--- "; then
           echo "::error::Code format check failed! The following format diff is required:"
           echo "$diff_output"
           exit 1
+        elif [ -n "$diff_output" ] && echo "$diff_output" | grep -v -q "WARNING:"; then
+          # 处理包含有 GN 风格修改或其他被修改提示的情况
+          if echo "$diff_output" | grep -q "This change has"; then
+            echo "::error::Code format check failed! The following format diff is required:"
+            echo "$diff_output"
+            exit 1
+          fi
         fi
         echo "Code format check passed!"
 
