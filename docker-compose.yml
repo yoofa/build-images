@@ -1,0 +1,10 @@
+services:
+  build-test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: build-ci:test
+    container_name: build-ci-test-container
+    stdin_open: true
+    tty: true
+

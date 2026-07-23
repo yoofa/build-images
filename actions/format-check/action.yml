@@ -17,10 +17,24 @@ runs:
     - name: Run Format Check
       shell: bash
       run: |
-        diff_output=$(git cl format --dry-run --diff --upstream="${{ inputs.upstream }}")
+        UPSTREAM="${{ inputs.upstream }}"
+        CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")
+        
+        # 如果 upstream 和当前分支同名（例如都在 master），或者在 push 事件下，退回到 origin/master 或 HEAD~1
+        if [ "$UPSTREAM" = "$CURRENT_BRANCH" ] || [ -z "$UPSTREAM" ]; then
+          if git rev-parse --verify origin/master >/dev/null 2>&1; then
+            UPSTREAM="origin/master"
+          else
+            UPSTREAM="HEAD~1"
+          fi
+        fi
+
+        echo "Running git cl format against upstream: $UPSTREAM"
+        diff_output=$(git cl format --dry-run --diff --upstream="$UPSTREAM")
         if [ -n "$diff_output" ]; then
           echo "::error::Code format check failed! The following format diff is required:"
           echo "$diff_output"
           exit 1
         fi
         echo "Code format check passed!"
+

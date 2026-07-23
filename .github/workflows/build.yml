@@ -4,6 +4,10 @@ on:
   workflow_dispatch:
   push:
     branches: [master]
+    paths:
+      - 'Dockerfile'
+      - 'tools/**'
+      - 'docker-compose.yml'
 env:
   IMAGE_NAME: ave-ci
 jobs:
